@@ -10,7 +10,9 @@ class NoteController extends GetxController {
   final TextEditingController txtEditController = TextEditingController();
   RxBool isSearching = false.obs;
   RxBool isSorting = false.obs;
-  final noteList = [].obs;
+  RxBool isUndo = false.obs;
+  RxList<Note> noteList = <Note>[].obs;
+  Note? recentDeletedNote;
 
   @override
   void onReady() {
@@ -30,6 +32,11 @@ class NoteController extends GetxController {
   Future<void> getNotes() async {
     List<Map<String, dynamic>> notes = await DBHelper.query();
     noteList.assignAll(notes.map((data) => Note.fromJson(data)).toList());
+  }
+
+  void temporaryDeleteNote(Note note) {
+    recentDeletedNote = note;
+    noteList.removeWhere((not) => not.id == note.id);
   }
 
   Future<void> deleteNote({required Note note}) async {

@@ -202,11 +202,10 @@ class HomePage extends StatelessWidget {
                               autoClose: true,
 
                               onPressed: (context) {
-                                _showDialog(Get.context!, () {
-                                  _notesController.deleteNote(
-                                    note: _notesController.noteList[i],
-                                  );
-                                });
+                                _showDialog(
+                                  context,
+                                  _notesController.noteList[i],
+                                );
                               },
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.white,
@@ -233,7 +232,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  void _showDialog(BuildContext context, VoidCallback onConfirm) {
+  void _showDialog(BuildContext context, Note note) {
     Get.dialog(
       AlertDialog(
         title: Text('Confirm Delete'),
@@ -249,8 +248,25 @@ class HomePage extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              Get.back(); // close dialog
-              onConfirm(); // perform delete
+              Get.back();
+              _notesController.temporaryDeleteNote(note);
+              ScaffoldMessenger.of(Get.context!).showSnackBar(
+                SnackBar(
+                  content: Text('Item deleted'),
+                  action: SnackBarAction(
+                    label: 'undo',
+                    onPressed: () {
+                      _notesController.getNotes();
+                      _notesController.isUndo.value = true;
+                    },
+                  ),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              if (_notesController.isUndo.value) {
+                _notesController.deleteNote(note: note);
+              }
+              _notesController.isUndo.value = true;
             },
             child: Text('Yes'),
           ),
